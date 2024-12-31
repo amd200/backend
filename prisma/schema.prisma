@@ -1,0 +1,160 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id String @id @default(uuid())
+  name String
+  email String @unique
+  phoneNumber String
+  password String
+  bio String?
+  profilePicture String?
+  isEmailVerified         Boolean  @default(false)
+  emailVerificationToken String?
+  emailTokenExpiration DateTime?
+  role UserRoles @default(USER)
+  reviews Review[]
+  cart Cart[]
+  orders Order[]
+  properties Property[]
+  requests Request[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Property {
+  id Int @id @default(autoincrement())
+  name String
+  description String
+  phoneNumber String
+  propertyType PropertyTypes
+  area Int
+  street String?
+  country String?
+  city String?
+  zipCode String?
+  roomsNumber Int
+  bathroomNumber Int
+  bedroomNumber Int?
+  floorsNumber Int
+  status PropertyStatus
+  finishType PropertyFinishTypes
+  price Float
+  paymentType PropertyPaymentTypes
+  additionalFeatures String[]
+  media String[]
+  amenities String[]
+  facilities String[]
+  reviews Review[]
+  user User? @relation(fields: [userId], references: [id])
+  userId String?
+  numberOfReviews Int @default(0)
+  averageRatings Int @default(0)
+  cart Cart[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Review {
+  id Int @id @default(autoincrement())
+  user User @relation(fields: [userId], references: [id])
+  userId String
+  property Property @relation(fields: [propertyId], references: [id])
+  propertyId Int
+  rating Int
+  comment String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Cart {
+  id Int @id @default(autoincrement())
+  user User @relation(fields: [userId], references: [id])
+  userId String
+  property Property @relation(fields: [propertyId], references: [id])
+  propertyId Int
+  quantity Int @default(1)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@unique([userId, propertyId])
+}
+
+model Order {
+  id Int @id @default(autoincrement())
+  user User @relation(fields: [userId], references: [id])
+  userId String
+  totalPrice Float
+  paymentId   String?
+  status OrderStatus @default(PENDING)
+  orderItems Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Request {
+  id Int @id @default(autoincrement())
+  name String
+  email String
+  user User? @relation(fields: [userId], references: [id])
+  userId String?
+  phoneNumber String
+  leaseType LeaseTypes
+  fromDate DateTime
+  toDate DateTime
+  message String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum LeaseTypes {
+  WEEKLY
+  MONTHLY
+  YEARLY
+}
+
+enum PropertyPaymentTypes {
+  CASH
+  INSTALLMENT
+}
+
+enum PropertyFinishTypes {
+  FULL
+  HALF
+  WITHOUT
+}
+
+enum PropertyStatus {
+  NEW
+  UNDER_CONSTRUCTION
+  USED
+}
+
+enum PropertyTypes {
+  APARTMENT
+  VILLA
+  ARCHITECTURE
+}
+
+enum OrderStatus {
+  PENDING
+  COMPLETED
+  CANCELED
+}
+
+enum UserRoles {
+  ADMIN
+  USER
+}
+
